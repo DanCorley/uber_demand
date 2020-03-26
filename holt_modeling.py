@@ -20,10 +20,11 @@ def fit_hw(train, test, season_periods=168, season = 'add',
     
     results = model.fit(smoothing_level = alpha,
                         smoothing_slope = beta,
-                        smoothing_seasonal = gamma)
+                        smoothing_seasonal = gamma,
+                        use_boxcox=False)
     
-    y_hat = results.forecast(len(test))
-    score = rmse(test, y_hat)
+    y_hat = results.predict(0)
+    score = rmse(train, y_hat)
     
     return score
 
@@ -144,11 +145,13 @@ def run_area_test(df, daterange, area, base = 15, tune= 10, season_periods=168):
     print(f'Starting with area: {area}')
     start = time.time()
     new_df = df[df['pickup_community_area'] == area]
+    
+    daterange = pd.DataFrame(daterange)
 
     new_df = daterange.merge(new_df, how='left',
                              left_on=0, right_on='date_time')
 
-    new_df.fillna(0, inplace=True)
+    new_df.fillna(1, inplace=True)
 
     new_df.set_index(0, inplace=True)
 
@@ -179,24 +182,34 @@ def run_area_test(df, daterange, area, base = 15, tune= 10, season_periods=168):
     
     return results
 
-def plot_predictions(results, start=-200, end= None, validate=True):
+def plot_predictions(results, start=-200, end= None, test=False, validate=True, scatter=False, area=False, save=False):
     '''
     show the predicted values for train & test
     '''
     
     results['train'][start:end].plot(figsize=(15,5), label='train data')
 #     results['train_pred'][start:end].plot(label='train predictions')
+
     if validate:
         results['validate'][:24*3].plot(label='testing data')
-#         plt.scatter(results['val_forecast'][:24*3].index, results['val_forecast'][:24*3], alpha=.8, s=15, label='predictions')
-        results['val_forecast'][:24*3].plot(label='predictions')
-#     results['test'].plot(label='test data')
-#     results['test_forecast'].plot(label='test predictions')
+        forecast = results['val_forecast'][:24*3]
+        if scatter:
+            
+            plt.scatter(forecast.index, forecast, alpha=.8, s=15, label='predictions')
+        else:
+            forecast.plot(label='predictions')
+            
+    if test:
+        results['test'].plot(label='test data')
+        results['forecast'].plot(label='test predictions')
+        
     plt.xlabel('')
     plt.ylabel('Total Rides per Hour', fontsize=20)
     plt.legend()
-    plt.title(f"Area {results['area']} Predictions")
-    plt.savefig(fname=f'results_{results["area"]}', transparent=True)
+    if area:
+        plt.title(f"Area {results['area']} Predictions")
+    if save:
+        plt.savefig(fname=f'results_{results["area"]}', transparent=True)
     plt.show()
 
     
