@@ -183,15 +183,20 @@ def plot_predictions(results, start=-200, end= None, validate=True):
     '''
     show the predicted values for train & test
     '''
-    results['train'][start:end].plot(figsize=(20,6), label='train data')
-    results['train_pred'][start:end].plot(label='train predictions')
+    
+    results['train'][start:end].plot(figsize=(15,5), label='train data')
+#     results['train_pred'][start:end].plot(label='train predictions')
     if validate:
-        results['validate'].plot(label='validation data')
-        results['val_forecast'].plot(label='validation pred.')
-    results['test'].plot(label='test data')
-    results['test_forecast'].plot(label='test predictions')
+        results['validate'][:24*3].plot(label='testing data')
+#         plt.scatter(results['val_forecast'][:24*3].index, results['val_forecast'][:24*3], alpha=.8, s=15, label='predictions')
+        results['val_forecast'][:24*3].plot(label='predictions')
+#     results['test'].plot(label='test data')
+#     results['test_forecast'].plot(label='test predictions')
+    plt.xlabel('')
+    plt.ylabel('Total Rides per Hour', fontsize=20)
     plt.legend()
     plt.title(f"Area {results['area']} Predictions")
+    plt.savefig(fname=f'results_{results["area"]}', transparent=True)
     plt.show()
 
     
